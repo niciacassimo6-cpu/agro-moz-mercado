@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agro Moz Mercado V11</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f3f7f3;color:#18321d}
+header{background:#126b35;color:#fff;padding:18px 15px;text-align:center}
+header h1{margin:0;font-size:27px} header p{margin:7px 0 0;font-size:14px}
+nav{background:#0d5429;display:flex;flex-wrap:wrap;justify-content:center;gap:5px;padding:8px}
+nav button{border:0;background:transparent;color:#fff;padding:11px 13px;border-radius:6px;cursor:pointer;font-size:14px}
+nav button:hover,nav button.active{background:#198646}
+.section{display:none;max-width:1050px;margin:auto;padding:22px 15px}
+.section.active{display:block}
+.hero,.card,.product-card,.stat{background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.08);margin-bottom:18px}
+.hero{text-align:center;padding:28px 20px} .hero h2,.card h2{color:#126b35;margin-top:0}
+.info-grid,.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
+.info-box,.stat{text-align:center} .stat strong{display:block;font-size:28px;color:#126b35}
+label{display:block;margin-top:11px;margin-bottom:5px;font-weight:bold}
+input,select,textarea{width:100%;padding:12px;border:1px solid #c9d6cc;border-radius:7px;font-size:15px;background:#fff}
+textarea{min-height:95px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.primary,.secondary,.danger{width:100%;margin-top:16px;padding:13px;border:0;border-radius:7px;font-size:15px;font-weight:bold;cursor:pointer}
+.primary{background:#126b35;color:#fff} .primary:hover{background:#0d5429}
+.secondary{background:#e8f3eb;color:#126b35} .danger{background:#b42318;color:#fff}
+.status{display:none;margin-top:14px;padding:12px;border-radius:7px;font-weight:bold}
+.status.show{display:block} .success{background:#edf7ef;color:#126b35} .error{background:#fff0f0;color:#a51d1d}
+.filters{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-bottom:18px}
+.product-card{border-left:5px solid #126b35} .product-card h3{margin-top:0;color:#126b35}
+.product-card p{margin:7px 0;line-height:1.4}
+.whatsapp{display:inline-block;margin-top:9px;padding:10px 14px;background:#128c45;color:#fff;text-decoration:none;border-radius:6px;font-weight:bold}
+.badge{display:inline-block;padding:4px 8px;border-radius:20px;background:#e8f3eb;color:#126b35;font-size:12px;font-weight:bold}.badge.negociacao{background:#fff2cc;color:#855d00}.badge.concluida{background:#e7e7e7;color:#444}.deal-form{background:#f5faf6;border:1px solid #c9d6cc;border-radius:9px;padding:14px;margin-top:14px}.deal-form h4{margin:0 0 8px;color:#126b35}.deal-admin{border:1px solid #dce6de;border-radius:9px;padding:14px;margin:12px 0;background:#fff}.deal-admin h4{margin:0 0 8px;color:#126b35}.deal-actions{display:grid;grid-template-columns:2fr 1fr;gap:10px;align-items:end}.deal-actions button{margin:0}.deal-notice{padding:12px;background:#fff7df;border-radius:8px;color:#755300;margin:12px 0}
+.small{font-size:13px;color:#617064} footer{background:#0d5429;color:#fff;text-align:center;padding:25px 15px;margin-top:25px}
+.searchbar{display:flex;gap:10px} .searchbar input{flex:1} .searchbar button{width:auto;margin:0}
+hr{border:0;border-top:1px solid #e4ebe5;margin:20px 0}
+@media(max-width:700px){.info-grid,.stats-grid,.grid2{grid-template-columns:1fr}.filters{grid-template-columns:1fr}nav button{flex:1 1 45%}header h1{font-size:23px}}
+</style>
+</head>
+<body>
+<header>
+<h1>🌱 Agro Moz Mercado</h1>
+<p>Conectando produtores, compradores e empresas em Moçambique</p>
+<div id="connectionStatus" class="small" style="color:#fff;margin-top:8px">A verificar ligação...</div>
+</header>
+
+<nav>
+<button type="button" data-section="inicio">Início</button>
+<button type="button" data-section="mercado">Mercado</button>
+<button type="button" data-section="publicar">Publicar</button>
+<button type="button" data-section="pedido">Pedido</button>
+<button type="button" data-section="empresas">Empresas</button>
+<button type="button" data-section="ofertas">Ofertas</button>
+<button type="button" data-section="pagamentos">Pagamentos</button>
+<button type="button" data-section="admin">Administrador</button>
+</nav>
+
+<section id="inicio" class="section active">
+<div class="hero">
+<h2>Bem-vindo ao Agro Moz Mercado</h2>
+<p>Uma plataforma para aproximar produtores, compradores, empresas e comerciantes do sector agropecuário em Moçambique.</p>
+<p>Publique produtos, encontre oportunidades, faça pedidos e apresente ofertas de compra.</p>
+</div>
+<div class="stats-grid">
+<div class="stat"><strong id="statProdutos">0</strong>Produtos</div>
+<div class="stat"><strong id="statOfertas">0</strong>Ofertas de compra</div>
+<div class="stat"><strong id="statEmpresas">0</strong>Empresas</div>
+</div>
+<div class="info-grid" style="margin-top:18px">
+<div class="info-box"><h3>🌾 Produtores</h3><p>Publique o que tem disponível.</p></div>
+<div class="info-box"><h3>🛒 Compradores</h3><p>Encontre produtos e contacte vendedores.</p></div>
+<div class="info-box"><h3>🏢 Empresas</h3><p>Registe a empresa e procure fornecedores.</p></div>
+</div>
+</section>
+
+<section id="mercado" class="section">
+<div class="card">
+<h2>🌾 Mercado</h2>
+<p>Pesquise produtos publicados.</p>
+<div class="filters">
+<input id="pesquisaProduto" placeholder="🔎 Procurar produto...">
+<select id="filtroCategoria"><option value="">Todas as categorias</option><option>Agrícola</option><option>Pecuária</option><option>Avícola</option><option>Piscicultura</option><option>Insumos</option><option>Outros</option></select>
+<select id="filtroProvincia"><option value="">Todas as províncias</option><option>Maputo</option><option>Maputo Cidade</option><option>Gaza</option><option>Inhambane</option><option>Sofala</option><option>Manica</option><option>Tete</option><option>Zambézia</option><option>Nampula</option><option>Cabo Delgado</option><option>Niassa</option></select>
+</div>
+<div id="listaProdutos"><p>A carregar produtos...</p></div>
+</div>
+</section>
+
+<section id="publicar" class="section">
+<div class="card">
+<h2>📦 Publicar produto</h2>
+<div class="grid2">
+<div><label>Produto</label><input id="produto" placeholder="Ex.: Tomate"></div>
+<div><label>Categoria</label><select id="categoria"><option value="">Seleccione</option><option>Agrícola</option><option>Pecuária</option><option>Avícola</option><option>Piscicultura</option><option>Insumos</option><option>Outros</option></select></div>
+<div><label>Quantidade</label><input id="quantidade" placeholder="Ex.: 100"></div>
+<div><label>Unidade</label><input id="unidade" placeholder="kg, sacos, caixas"></div>
+<div><label>Preço (MT)</label><input id="preco" type="number" min="0" placeholder="Preço"></div>
+<div><label>Província</label><select id="provincia"><option value="">Seleccione</option><option>Maputo</option><option>Maputo Cidade</option><option>Gaza</option><option>Inhambane</option><option>Sofala</option><option>Manica</option><option>Tete</option><option>Zambézia</option><option>Nampula</option><option>Cabo Delgado</option><option>Niassa</option></select></div>
+<div><label>Distrito</label><input id="distrito" placeholder="Ex.: Beira"></div>
+<div><label>Telefone / WhatsApp</label><input id="telefone" placeholder="Ex.: 84xxxxxxx"></div>
+</div>
+<label>Descrição</label><textarea id="descricao" placeholder="Descreva o produto, qualidade, disponibilidade..."></textarea>
+<button id="btnPublicar" class="primary">Publicar produto</button>
+<div id="resultadoPublicar" class="status"></div>
+</div>
+</section>
+
+<section id="pedido" class="section">
+<div class="card">
+<h2>🛒 Fazer pedido</h2>
+<div class="grid2">
+<div><label>Produto que procura</label><input id="pedidoProduto" placeholder="Ex.: Tomate"></div>
+<div><label>Nome do comprador</label><input id="nomeComprador" placeholder="Nome ou empresa"></div>
+<div><label>Quantidade</label><input id="pedidoQuantidade" placeholder="Ex.: 500"></div>
+<div><label>Unidade</label><input id="pedidoUnidade" placeholder="kg, sacos, caixas"></div>
+<div><label>Telefone / WhatsApp</label><input id="pedidoTelefone" placeholder="84xxxxxxx"></div>
+<div><label>Província</label><input id="pedidoProvincia" placeholder="Província"></div>
+<div><label>Distrito</label><input id="pedidoDistrito" placeholder="Distrito"></div>
+</div>
+<label>Observação</label><textarea id="pedidoObservacao" placeholder="Informações adicionais..."></textarea>
+<button id="btnPedido" class="primary">Enviar pedido</button>
+<div id="resultadoPedido" class="status"></div>
+</div>
+</section>
+
+<section id="empresas" class="section">
+<div class="card">
+<h2>🏢 Registar empresa</h2>
+<div class="grid2">
+<div><label>Nome da empresa</label><input id="nomeEmpresa" placeholder="Nome da empresa"></div>
+<div><label>Tipo de actividade</label><input id="tipoAtividade" placeholder="Ex.: comércio agrícola"></div>
+<div><label>Nome do contacto</label><input id="nomeContacto" placeholder="Responsável"></div>
+<div><label>Telefone / WhatsApp</label><input id="empresaTelefone" placeholder="Telefone"></div>
+<div><label>E-mail</label><input id="empresaEmail" type="email" placeholder="E-mail"></div>
+<div><label>Província</label><input id="empresaProvincia" placeholder="Província"></div>
+<div><label>Distrito</label><input id="empresaDistrito" placeholder="Distrito"></div>
+</div>
+<label>Produtos procurados</label><textarea id="produtosProcurados" placeholder="Ex.: milho, soja, feijão..."></textarea>
+<label>Descrição da empresa</label><textarea id="empresaDescricao" placeholder="Fale brevemente sobre a empresa..."></textarea>
+<button id="btnEmpresa" class="primary">Registar empresa</button>
+<div id="resultadoEmpresa" class="status"></div>
+</div>
+</section>
+
+<section id="ofertas" class="section">
+<div class="card">
+<h2>🤝 Ofertas de compra</h2>
+<p>Empresas e compradores podem apresentar ofertas para aquisição de produtos.</p>
+<div class="grid2">
+<div><label>Produto</label><input id="ofertaProduto" placeholder="Ex.: Milho"></div>
+<div><label>Categoria</label><select id="ofertaCategoria"><option value="">Seleccione</option><option>Agrícola</option><option>Pecuária</option><option>Avícola</option><option>Piscicultura</option><option>Outros</option></select></div>
+<div><label>Quantidade</label><input id="ofertaQuantidade" placeholder="Ex.: 10 toneladas"></div>
+<div><label>Unidade</label><input id="ofertaUnidade" placeholder="kg, toneladas, sacos"></div>
+<div><label>Preço oferecido (MT)</label><input id="precoOferecido" type="number" min="0"></div>
+<div><label>Província</label><input id="ofertaProvincia" placeholder="Província"></div>
+<div><label>Distrito</label><input id="ofertaDistrito" placeholder="Distrito"></div>
+<div><label>Prazo</label><input id="ofertaPrazo" placeholder="Ex.: até 30 de Outubro"></div>
+</div>
+<label>Observação</label><textarea id="ofertaObservacao" placeholder="Detalhes da oferta..."></textarea>
+<button id="btnOferta" class="primary">Publicar oferta</button>
+<div id="resultadoOferta" class="status"></div>
+</div>
+<div class="card"><h2>Ofertas disponíveis</h2><div id="listaOfertas"><p>A carregar ofertas...</p></div></div>
+</section>
+
+<section id="pagamentos" class="section">
+<div class="card">
+<h2>💳 Meios de pagamento</h2>
+<p>O Agro Moz Mercado disponibiliza instruções para pagamentos por carteira móvel e transferência bancária. Confirme sempre o nome do destinatário antes de enviar dinheiro.</p>
+<div class="info-grid">
+<div class="info-box card"><h3>📱 M-Pesa</h3><p><strong>846 136 208</strong></p><p class="small">Use este número apenas após confirmar que corresponde ao destinatário da transação.</p></div>
+<div class="info-box card"><h3>📱 e-Mola</h3><p><strong>866 330 567</strong></p><p class="small">Confirme o nome do titular antes de concluir o pagamento.</p></div>
+<div class="info-box card"><h3>🏦 Transferência bancária</h3><p><strong>Millennium BIM</strong></p><p>Dados da conta a fornecer pelo titular.</p><p class="small">Peça os dados bancários oficiais à Agro Moz antes de transferir. Não faça pagamentos para contas não confirmadas.</p></div>
+</div>
+<p><strong>Nota:</strong> estes dados são instruções de contacto, não uma integração automática de pagamentos. Não envie comprovativos ou dados bancários sensíveis no site. A confirmação dos pagamentos é manual até ser configurado um fornecedor de pagamentos.</p>
+<a class="whatsapp" target="_blank" rel="noopener" href="https://wa.me/258866330567?text=Bom%20dia%2C%20pretendo%20confirmar%20os%20dados%20de%20pagamento%20do%20Agro%20Moz.">Contactar para confirmar pagamento</a>
+</div>
+</section>
+
+<section id="admin" class="section">
+<div class="card">
+<h2>🔐 Área do administrador</h2>
+<p>Entre com o e-mail autorizado. O Supabase enviará um link de acesso para a sua caixa de correio.</p>
+<label>E-mail do administrador</label><input id="adminEmail" type="email" value="agromozcs@gmail.com" autocomplete="email">
+<button id="btnAdminLogin" class="primary">Enviar link de acesso</button>
+<button id="btnAdminLogout" class="secondary" style="display:none">Terminar sessão</button>
+<div id="resultadoAdmin" class="status"></div>
+<div id="adminPainel" style="display:none">
+<hr><h3>Resumo da plataforma</h3>
+<div class="stats-grid"><div class="stat"><strong id="adminProdutos">—</strong>Produtos</div><div class="stat"><strong id="adminPedidos">—</strong>Pedidos</div><div class="stat"><strong id="adminEmpresas">—</strong>Empresas</div></div>
+<p class="small">Os pedidos de negociação e os dados dos compradores ficam nesta área privada. Mude o estado para “Em negociação” quando começar o contacto e para “Concluída” apenas depois de confirmar o negócio.</p>
+<div id="adminDeals"><p>A carregar pedidos de negociação...</p></div>
+<button id="btnAdminRefresh" class="secondary">Atualizar resumo e negociações</button>
+</div>
+</div>
+</section>
+
+<footer>
+<strong>Agro Moz Consultoria e Serviço</strong>
+<p>Agro Moz Mercado — conectando oportunidades no agronegócio.</p>
+<p>📧 agromozcs@gmail.com</p>
+</footer>
+
+<script>
+const SUPABASE_URL = 'https://zhqfwioidhgbnszgeanb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Flsc3b8sLDi83-mbhz9IVw__BRzkq9r';
+
+let supabaseClient = null;
+let produtosCache = [];
+let estadosProdutos = {};
+let negociacoesCache = [];
+
+function esc(v) {
+  return String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+}
+
+function status(id,msg,ok=false) {
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.textContent=msg;
+  el.className="status show " + (ok ? "success" : "error");
+}
+
+function go(section) {
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+  document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+  const sec=document.getElementById(section);
+  const btn=document.querySelector('nav button[data-section="'+section+'"]');
+  if(sec) sec.classList.add("active");
+  if(btn) btn.classList.add("active");
+  window.scrollTo({top:0,behavior:"smooth"});
+  if(section==="mercado") carregarProdutos();
+  if(section==="ofertas") carregarOfertas();
+  if(section==="inicio") atualizarEstatisticas();
+  if(section==="admin") atualizarEstadoAdmin();
+}
+
+document.querySelectorAll("nav button").forEach(btn=>btn.addEventListener("click",()=>go(btn.dataset.section)));
+
+async function iniciar() {
+  try {
+    if(!window.supabase) throw new Error("A biblioteca do Supabase não carregou. Verifique a internet.");
+    if(!SUPABASE_URL || !SUPABASE_KEY) throw new Error("Configuração do Supabase incompleta.");
+    supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+    supabaseClient.auth.onAuthStateChange(()=>setTimeout(atualizarEstadoAdmin,0));
+    document.getElementById("connectionStatus").textContent="● Ligação ao sistema pronta";
+    document.getElementById("connectionStatus").style.color="#d7ffd9";
+    await atualizarEstatisticas();
+  } catch(e) {
+    document.getElementById("connectionStatus").textContent="● Erro de ligação: "+e.message;
+    document.getElementById("connectionStatus").style.color="#ffd0d0";
+  }
+}
+
+async function publicarProduto() {
+  if(!supabaseClient) return status("resultadoPublicar","O sistema ainda não está ligado. Recarregue a página.");
+  const dados={
+    nome_produto:document.getElementById("produto").value.trim(),
+    categoria:document.getElementById("categoria").value,
+    descricao:document.getElementById("descricao").value.trim(),
+    quantidade:document.getElementById("quantidade").value.trim(),
+    unidade:document.getElementById("unidade").value.trim(),
+    preco:document.getElementById("preco").value!==""?Number(document.getElementById("preco").value):null,
+    provincia:document.getElementById("provincia").value,
+    distrito:document.getElementById("distrito").value.trim(),
+    telefone:document.getElementById("telefone").value.trim()
+  };
+  if(!dados.nome_produto || !dados.telefone) return status("resultadoPublicar","Preencha pelo menos o produto e o telefone/WhatsApp.");
+  status("resultadoPublicar","A publicar...",true);
+  try {
+    const r=await supabaseClient.from("agro_moz_produtos").insert([dados]);
+    if(r.error) throw r.error;
+    status("resultadoPublicar","✅ Produto publicado com sucesso!",true);
+    ["produto","categoria","quantidade","unidade","preco","provincia","distrito","telefone","descricao"].forEach(id=>document.getElementById(id).value="");
+    await atualizarEstatisticas();
+  } catch(e) {
+    status("resultadoPublicar","❌ Não foi possível publicar: "+e.message);
+  }
+}
+
+async function carregarProdutos() {
+  const lista=document.getElementById("listaProdutos");
+  if(!supabaseClient) return;
+  lista.innerHTML="<p>A carregar produtos...</p>";
+  try {
+    const r=await supabaseClient.from("agro_moz_produtos").select("*").order("id",{ascending:false});
+    if(r.error) throw r.error;
+    produtosCache=r.data||[];
+    const st=await supabaseClient.from("agro_moz_negociacoes").select("product_id,status,created_at").order("created_at",{ascending:false});
+    if(st.error) throw new Error("Falta configurar a tabela de negociações no Supabase. Consulte o ficheiro SQL de configuração.");
+    estadosProdutos={};
+    (st.data||[]).forEach(x=>{ const k=String(x.product_id); if(!(k in estadosProdutos)) estadosProdutos[k]=x.status==="cancelada"?"disponivel":x.status; });
+    renderProdutos();
+  } catch(e) {
+    lista.innerHTML="<p class='small'>Erro ao carregar produtos: "+esc(e.message)+"</p>";
+  }
+}
+
+function renderProdutos() {
+  const lista=document.getElementById("listaProdutos");
+  const q=document.getElementById("pesquisaProduto").value.toLowerCase().trim();
+  const cat=document.getElementById("filtroCategoria").value;
+  const prov=document.getElementById("filtroProvincia").value;
+  const dados=produtosCache.filter(p=>estadosProdutos[String(p.id)]!=="concluida"&&(!q||(p.nome_produto||"").toLowerCase().includes(q))&&(!cat||p.categoria===cat)&&(!prov||p.provincia===prov));
+  if(!dados.length) { lista.innerHTML="<p>Nenhum produto disponível encontrado.</p>"; return; }
+  lista.innerHTML="";
+  dados.forEach(p=>{
+    const card=document.createElement("div"); card.className="product-card";
+    const estado=estadosProdutos[String(p.id)]||"disponivel";
+    const num=(p.telefone||"").replace(/\D/g,"");
+    const wa=num?'<a class="whatsapp" target="_blank" rel="noopener" href="https://wa.me/'+num+'">💬 Contactar no WhatsApp</a>':"";
+    const badgeEstado=estado==="em_negociacao"?'<p><span class="badge negociacao">🤝 Em negociação</span></p>':(estado==="pedido_recebido"?'<p><span class="badge">Pedido de interesse recebido</span></p>':"");
+    const botao=estado==="em_negociacao"?'<p class="deal-notice">Este produto está em negociação. Pode voltar a consultar mais tarde.</p>':(estado==="pedido_recebido"?'<p class="deal-notice">O interesse foi recebido. O administrador está a preparar o contacto com o produtor.</p>':'<button type="button" class="primary" onclick="mostrarFormularioNegociacao(\''+esc(String(p.id))+'\')">Tenho interesse neste produto</button><div id="neg-form-'+esc(String(p.id))+'"></div>');
+    card.innerHTML='<h3>'+esc(p.nome_produto)+'</h3>'+badgeEstado+
+      '<p><span class="badge">'+esc(p.categoria||"Sem categoria")+'</span></p>'+ 
+      '<p><strong>Quantidade:</strong> '+esc(p.quantidade||"—")+' '+esc(p.unidade||"")+'</p>'+ 
+      '<p><strong>Preço:</strong> '+(p.preco!==null&&p.preco!==undefined?p.preco+" MT":"Sob consulta")+'</p>'+ 
+      '<p><strong>Local:</strong> '+esc(p.provincia||"—")+(p.distrito?" - "+esc(p.distrito):"")+'</p>'+ 
+      '<p>'+esc(p.descricao||"")+'</p>'+wa+botao;
+    lista.appendChild(card);
+  });
+}
+
+["pesquisaProduto","filtroCategoria","filtroProvincia"].forEach(id=>document.getElementById(id).addEventListener(id==="pesquisaProduto"?"input":"change",renderProdutos));
+document.getElementById("btnPublicar").addEventListener("click",publicarProduto);
+
+function mostrarFormularioNegociacao(productId) {
+  const p=produtosCache.find(x=>String(x.id)===String(productId));
+  if(!p) return alert("Não foi possível encontrar este produto. Actualize a página.");
+  if(estadosProdutos[String(productId)]==="em_negociacao") return alert("Este produto já está em negociação.");
+  const alvo=document.getElementById("neg-form-"+productId);
+  if(!alvo) return;
+  alvo.innerHTML='<div class="deal-form"><h4>Solicitar contacto para negociar: '+esc(p.nome_produto)+'</h4>'+ 
+    '<label>Nome da empresa / comprador</label><input id="deal-empresa-'+esc(productId)+'" placeholder="Nome da empresa ou comprador">'+
+    '<label>Nome da pessoa de contacto</label><input id="deal-contacto-'+esc(productId)+'" placeholder="Nome completo">'+
+    '<label>Telefone / WhatsApp</label><input id="deal-telefone-'+esc(productId)+'" placeholder="Número de contacto">'+
+    '<label>Quantidade pretendida</label><input id="deal-quantidade-'+esc(productId)+'" placeholder="Ex.: 500 kg ou 20 sacos">'+
+    '<label>Mensagem / condições propostas</label><textarea id="deal-notas-'+esc(productId)+'" placeholder="Indique preço proposto, local de entrega ou outras condições"></textarea>'+ 
+    '<button class="primary" type="button" id="deal-enviar-'+esc(productId)+'">Enviar interesse ao Agro Moz</button><div id="deal-resultado-'+esc(productId)+'" class="status"></div></div>';
+  document.getElementById("deal-enviar-"+productId).addEventListener("click",()=>enviarInteresse(productId));
+}
+
+async function enviarInteresse(productId) {
+  if(!supabaseClient) return alert("O sistema ainda não está ligado ao Supabase.");
+  const p=produtosCache.find(x=>String(x.id)===String(productId));
+  const empresa=document.getElementById("deal-empresa-"+productId).value.trim();
+  const contacto=document.getElementById("deal-contacto-"+productId).value.trim();
+  const telefone=document.getElementById("deal-telefone-"+productId).value.trim();
+  const quantidade=document.getElementById("deal-quantidade-"+productId).value.trim();
+  const observacao=document.getElementById("deal-notas-"+productId).value.trim();
+  const out="deal-resultado-"+productId;
+  if(!empresa||!contacto||!telefone) return status(out,"Preencha empresa/comprador, contacto e telefone.");
+  if(estadosProdutos[String(productId)]==="em_negociacao") return status(out,"Este produto já está em negociação.");
+  status(out,"A enviar o pedido ao administrador...",true);
+  const dados={product_id:String(p.id),produto_nome:p.nome_produto||"",categoria:p.categoria||"",produtor_telefone:p.telefone||"",produtor_provincia:p.provincia||"",produtor_distrito:p.distrito||"",comprador_empresa:empresa,comprador_contacto:contacto,comprador_telefone:telefone,quantidade_pretendida:quantidade,observacao:observacao,status:"pedido_recebido"};
+  try {
+    const r=await supabaseClient.from("agro_moz_negociacoes").insert([dados]);
+    if(r.error) throw r.error;
+    status(out,"✅ Interesse enviado! O administrador do Agro Moz irá contactar o produtor e acompanhar a negociação.",true);
+    const btn=document.getElementById("deal-enviar-"+productId); if(btn) btn.disabled=true;
+    await carregarProdutos();
+  } catch(e) { status(out,"❌ Não foi possível enviar. Verifique a configuração do Supabase: "+e.message); }
+}
+
+async function carregarNegociacoesAdmin() {
+  const box=document.getElementById("adminDeals");
+  if(!box||!adminSession) return;
+  box.innerHTML="<p>A carregar pedidos de negociação...</p>";
+  try {
+    const r=await supabaseClient.from("agro_moz_negociacoes").select("*").order("created_at",{ascending:false});
+    if(r.error) throw r.error;
+    negociacoesCache=r.data||[];
+    if(!negociacoesCache.length){box.innerHTML="<p>Ainda não há pedidos de negociação.</p>";return;}
+    box.innerHTML="";
+    negociacoesCache.forEach(n=>{
+      const el=document.createElement("div");el.className="deal-admin";
+      const data=n.created_at?new Date(n.created_at).toLocaleString("pt-MZ"):"—";
+      const estadoLabel={pedido_recebido:"Interesse recebido",em_negociacao:"Em negociação",concluida:"Concluída com sucesso",cancelada:"Cancelada"}[n.status]||n.status;
+      el.innerHTML='<h4>🌾 '+esc(n.produto_nome||"Produto")+' — '+esc(estadoLabel)+'</h4>'+ 
+        '<p><strong>Data do pedido:</strong> '+esc(data)+'</p>'+ 
+        '<p><strong>Empresa/comprador:</strong> '+esc(n.comprador_empresa||"—")+'</p>'+ 
+        '<p><strong>Contacto do comprador:</strong> '+esc(n.comprador_contacto||"—")+' | '+esc(n.comprador_telefone||"—")+'</p>'+ 
+        '<p><strong>Produtor / telefone:</strong> '+esc(n.produtor_telefone||"—")+'</p>'+ 
+        '<p><strong>Local do produtor:</strong> '+esc(n.produtor_provincia||"—")+' '+esc(n.produtor_distrito||"")+'</p>'+ 
+        '<p><strong>Quantidade pretendida:</strong> '+esc(n.quantidade_pretendida||"Não indicada")+'</p>'+ 
+        '<p><strong>Observações / condições:</strong> '+esc(n.observacao||"—")+'</p>'+ 
+        '<div class="deal-actions"><div><label>Estado do negócio</label><select id="deal-status-'+esc(n.id)+'"><option value="pedido_recebido">Interesse recebido</option><option value="em_negociacao">Em negociação</option><option value="concluida">Concluída com sucesso</option><option value="cancelada">Cancelada</option></select></div><button class="primary" type="button" id="deal-guardar-'+esc(n.id)+'">Guardar estado</button></div><div id="deal-admin-msg-'+esc(n.id)+'" class="status"></div>';
+      box.appendChild(el);
+      const sel=document.getElementById("deal-status-"+n.id);sel.value=n.status||"pedido_recebido";
+      document.getElementById("deal-guardar-"+n.id).addEventListener("click",()=>atualizarEstadoNegociacao(n.id));
+    });
+  } catch(e) { box.innerHTML='<p class="deal-notice">Não foi possível carregar as negociações: '+esc(e.message)+'. Confirme se executou o ficheiro SQL de configuração.</p>'; }
+}
+
+async function atualizarEstadoNegociacao(id) {
+  if(!adminSession) return;
+  const estado=document.getElementById("deal-status-"+id).value;
+  const msg="deal-admin-msg-"+id;
+  try {
+    const r=await supabaseClient.from("agro_moz_negociacoes").update({status:estado,updated_at:new Date().toISOString()}).eq("id",id);
+    if(r.error) throw r.error;
+    status(msg,"Estado actualizado com sucesso.",true);
+    await carregarNegociacoesAdmin();
+    await carregarProdutos();
+    await atualizarEstatisticas();
+  } catch(e) { status(msg,"Erro ao guardar estado: "+e.message); }
+}
+
+async function publicarPedido() {
+  if(!supabaseClient) return status("resultadoPedido","O sistema ainda não está ligado.");
+  const dados={
+    produto:document.getElementById("pedidoProduto").value.trim(),
+    nome_comprador:document.getElementById("nomeComprador").value.trim(),
+    quantidade:document.getElementById("pedidoQuantidade").value.trim(),
+    unidade:document.getElementById("pedidoUnidade").value.trim(),
+    telefone:document.getElementById("pedidoTelefone").value.trim(),
+    provincia:document.getElementById("pedidoProvincia").value.trim(),
+    distrito:document.getElementById("pedidoDistrito").value.trim(),
+    observacao:document.getElementById("pedidoObservacao").value.trim()
+  };
+  if(!dados.produto||!dados.nome_comprador||!dados.telefone) return status("resultadoPedido","Preencha produto, comprador e telefone.");
+  status("resultadoPedido","A enviar...",true);
+  try {
+    const r=await supabaseClient.from("agro_moz_pedidos").insert([dados]);
+    if(r.error) throw r.error;
+    status("resultadoPedido","✅ Pedido enviado com sucesso!",true);
+    ["pedidoProduto","nomeComprador","pedidoQuantidade","pedidoUnidade","pedidoTelefone","pedidoProvincia","pedidoDistrito","pedidoObservacao"].forEach(id=>document.getElementById(id).value="");
+  } catch(e) { status("resultadoPedido","❌ Erro: "+e.message); }
+}
+document.getElementById("btnPedido").addEventListener("click",publicarPedido);
+
+async function registarEmpresa() {
+  if(!supabaseClient) return status("resultadoEmpresa","O sistema ainda não está ligado.");
+  const dados={
+    nome_empresa:document.getElementById("nomeEmpresa").value.trim(),
+    tipo_atividade:document.getElementById("tipoAtividade").value.trim(),
+    nome_contacto:document.getElementById("nomeContacto").value.trim(),
+    telefone:document.getElementById("empresaTelefone").value.trim(),
+    email:document.getElementById("empresaEmail").value.trim(),
+    provincia:document.getElementById("empresaProvincia").value.trim(),
+    distrito:document.getElementById("empresaDistrito").value.trim(),
+    produtos_procurados:document.getElementById("produtosProcurados").value.trim(),
+    descricao:document.getElementById("empresaDescricao").value.trim()
+  };
+  if(!dados.nome_empresa||!dados.telefone) return status("resultadoEmpresa","Preencha nome da empresa e telefone.");
+  status("resultadoEmpresa","A registar...",true);
+  try {
+    const r=await supabaseClient.from("agro_moz_empresas").insert([dados]);
+    if(r.error) throw r.error;
+    status("resultadoEmpresa","✅ Empresa registada com sucesso!",true);
+    ["nomeEmpresa","tipoAtividade","nomeContacto","empresaTelefone","empresaEmail","empresaProvincia","empresaDistrito","produtosProcurados","empresaDescricao"].forEach(id=>document.getElementById(id).value="");
+    atualizarEstatisticas();
+  } catch(e) { status("resultadoEmpresa","❌ Erro: "+e.message); }
+}
+document.getElementById("btnEmpresa").addEventListener("click",registarEmpresa);
+
+async function publicarOferta() {
+  if(!supabaseClient) return status("resultadoOferta","O sistema ainda não está ligado.");
+  const dados={
+    produto:document.getElementById("ofertaProduto").value.trim(),
+    categoria:document.getElementById("ofertaCategoria").value,
+    quantidade:document.getElementById("ofertaQuantidade").value.trim(),
+    unidade:document.getElementById("ofertaUnidade").value.trim(),
+    preco_oferecido:document.getElementById("precoOferecido").value!==""?Number(document.getElementById("precoOferecido").value):null,
+    provincia:document.getElementById("ofertaProvincia").value.trim(),
+    distrito:document.getElementById("ofertaDistrito").value.trim(),
+    prazo:document.getElementById("ofertaPrazo").value.trim(),
+    observacao:document.getElementById("ofertaObservacao").value.trim()
+  };
+  if(!dados.produto||!dados.quantidade) return status("resultadoOferta","Preencha produto e quantidade.");
+  status("resultadoOferta","A publicar...",true);
+  try {
+    const r=await supabaseClient.from("agro_moz_ofertas").insert([dados]);
+    if(r.error) throw r.error;
+    status("resultadoOferta","✅ Oferta publicada com sucesso!",true);
+    ["ofertaProduto","ofertaCategoria","ofertaQuantidade","ofertaUnidade","precoOferecido","ofertaProvincia","ofertaDistrito","ofertaPrazo","ofertaObservacao"].forEach(id=>document.getElementById(id).value="");
+    await carregarOfertas(); atualizarEstatisticas();
+  } catch(e) { status("resultadoOferta","❌ Erro: "+e.message); }
+}
+document.getElementById("btnOferta").addEventListener("click",publicarOferta);
+
+async function carregarOfertas() {
+  const lista=document.getElementById("listaOfertas"); if(!supabaseClient) return;
+  try {
+    const r=await supabaseClient.from("agro_moz_ofertas").select("*").order("id",{ascending:false});
+    if(r.error) throw r.error;
+    const dados=r.data||[];
+    if(!dados.length) {lista.innerHTML="<p>Nenhuma oferta publicada ainda.</p>";return;}
+    lista.innerHTML="";
+    dados.forEach(o=>{
+      const c=document.createElement("div");c.className="product-card";
+      c.innerHTML="<h3>"+esc(o.produto)+"</h3><p><strong>Quantidade:</strong> "+esc(o.quantidade||"—")+" "+esc(o.unidade||"")+"</p><p><strong>Preço:</strong> "+(o.preco_oferecido!=null?o.preco_oferecido+" MT":"A negociar")+"</p><p><strong>Local:</strong> "+esc(o.provincia||"—")+(o.distrito?" - "+esc(o.distrito):"")+"</p><p><strong>Prazo:</strong> "+esc(o.prazo||"—")+"</p><p>"+esc(o.observacao||"")+"</p>";
+      lista.appendChild(c);
+    });
+  } catch(e) { lista.innerHTML="<p>Erro ao carregar ofertas: "+esc(e.message)+"</p>"; }
+}
+
+async function countTable(table,id) {
+  try {
+    const r=await supabaseClient.from(table).select("*",{count:"exact",head:true});
+    document.getElementById(id).textContent=r.error?"—":(r.count||0);
+  } catch(e) { document.getElementById(id).textContent="—"; }
+}
+async function atualizarEstatisticas() {
+  if(!supabaseClient) return;
+  await Promise.all([
+    countTable("agro_moz_produtos","statProdutos"),
+    countTable("agro_moz_ofertas","statOfertas"),
+    countTable("agro_moz_empresas","statEmpresas")
+  ]);
+}
+
+
+const ADMIN_EMAIL = "agromozcs@gmail.com";
+let adminSession = null;
+let adminRefreshTimer = null;
+
+async function adminLogin() {
+  if(!supabaseClient) return status("resultadoAdmin","O sistema ainda não está ligado ao Supabase.");
+  const email=document.getElementById("adminEmail").value.trim().toLowerCase();
+  if(email!==ADMIN_EMAIL) return status("resultadoAdmin","Este e-mail não está autorizado para a área administrativa.");
+  try {
+    const r=await supabaseClient.auth.signInWithOtp({email, options:{emailRedirectTo:window.location.href}});
+    if(r.error) throw r.error;
+    status("resultadoAdmin","Link de acesso enviado para agromozcs@gmail.com. Verifique também a pasta de spam.",true);
+  } catch(e) { status("resultadoAdmin","Não foi possível enviar o acesso: "+e.message); }
+}
+
+async function atualizarEstadoAdmin() {
+  if(!supabaseClient) return;
+  try {
+    const {data,error}=await supabaseClient.auth.getSession();
+    if(error) throw error;
+    adminSession=data.session;
+    const autorizado=!!(adminSession && adminSession.user && (adminSession.user.email||"").toLowerCase()===ADMIN_EMAIL);
+    document.getElementById("adminPainel").style.display=autorizado?"block":"none";
+    document.getElementById("btnAdminLogout").style.display=autorizado?"block":"none";
+    if(autorizado) {
+      await carregarResumoAdmin();
+      if(!adminRefreshTimer) adminRefreshTimer=setInterval(()=>{ if(adminSession) carregarResumoAdmin(); },20000);
+    } else {
+      if(adminRefreshTimer) { clearInterval(adminRefreshTimer); adminRefreshTimer=null; }
+      if(adminSession) status("resultadoAdmin","A sessão iniciada não pertence ao e-mail autorizado.");
+    }
+  } catch(e) { status("resultadoAdmin","Não foi possível verificar a sessão: "+e.message); }
+}
+
+async function carregarResumoAdmin() {
+  if(!adminSession) return;
+  await Promise.all([
+    countTable("agro_moz_produtos","adminProdutos"),
+    countTable("agro_moz_pedidos","adminPedidos"),
+    countTable("agro_moz_empresas","adminEmpresas"),
+    carregarNegociacoesAdmin()
+  ]);
+}
+
+document.getElementById("btnAdminLogin").addEventListener("click",adminLogin);
+document.getElementById("btnAdminRefresh").addEventListener("click",carregarResumoAdmin);
+document.getElementById("btnAdminLogout").addEventListener("click",async()=>{
+  try { const r=await supabaseClient.auth.signOut(); if(r.error) throw r.error; adminSession=null; if(adminRefreshTimer){clearInterval(adminRefreshTimer);adminRefreshTimer=null;} document.getElementById("adminPainel").style.display="none"; document.getElementById("btnAdminLogout").style.display="none"; status("resultadoAdmin","Sessão terminada.",true); }
+  catch(e) { status("resultadoAdmin","Erro ao terminar sessão: "+e.message); }
+});
+supabaseClient; // client is initialized by iniciar(); session state is checked on navigation
+
+go("inicio");
+iniciar().then(()=>atualizarEstadoAdmin());
+</script>
+</body>
+</html>
